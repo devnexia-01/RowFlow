@@ -9,10 +9,12 @@ export class Matchmaker {
   private playerToGame: Map<string, string> = new Map();
   private reconnectionTimeout: number;
   private matchmakingTimeout: number;
+  private onGameCreated?: (game: GameState) => void;
 
-  constructor() {
+  constructor(onGameCreated?: (game: GameState) => void) {
     this.reconnectionTimeout = parseInt(process.env.RECONNECTION_TIMEOUT || '30000');
     this.matchmakingTimeout = parseInt(process.env.MATCHMAKING_TIMEOUT || '10000');
+    this.onGameCreated = onGameCreated;
   }
 
   addToQueue(client: ClientConnection): void {
@@ -31,19 +33,25 @@ export class Matchmaker {
 
     if (otherPlayer) {
       // Match with another player
-      this.createGame(client, otherPlayer);
+      const game = this.createGame(client, otherPlayer);
+      if (this.onGameCreated) {
+        this.onGameCreated(game);
+      }
     } else {
       // Set timeout to match with bot
       setTimeout(() => {
         if (!client.gameId && this.waitingPlayers.includes(client)) {
           console.log(`Matching ${client.username} with bot after timeout`);
-          this.createGameWithBot(client);
+          const game = this.createGameWithBot(client);
+          if (this.onGameCreated) {
+            this.onGameCreated(game);
+          }
         }
       }, this.matchmakingTimeout);
     }
   }
 
-  private createGame(player1: ClientConnection, player2: ClientConnection): void {
+  private createGame(player1: ClientConnection, player2: ClientConnection): GameState {
     const gameId = uuidv4();
     
     const game: GameState = {
@@ -74,9 +82,10 @@ export class Matchmaker {
     );
 
     console.log(`Game ${gameId} created: ${player1.username} vs ${player2.username}`);
+    return game;
   }
 
-  private createGameWithBot(player: ClientConnection): void {
+  private createGameWithBot(player: ClientConnection): GameState {
     const gameId = uuidv4();
     
     const game: GameState = {
@@ -102,6 +111,7 @@ export class Matchmaker {
     this.waitingPlayers = this.waitingPlayers.filter(p => p.id !== player.id);
 
     console.log(`Game ${gameId} created: ${player.username} vs Bot`);
+    return game;
   }
 
   getGame(gameId: string): GameState | undefined {

@@ -23,7 +23,7 @@ export class WebSocketHandler {
     this.wss = wss;
     this.db = db;
     this.kafka = kafka;
-    this.matchmaker = new Matchmaker();
+    this.matchmaker = new Matchmaker((game) => this.startGame(game));
 
     this.setupWebSocket();
   }
@@ -89,14 +89,6 @@ export class WebSocketHandler {
       type: 'waiting',
       data: { message: 'Waiting for opponent...' },
     });
-
-    // Check if game was created immediately
-    setTimeout(() => {
-      const game = this.matchmaker.getGame(client.gameId || '');
-      if (game) {
-        this.startGame(game);
-      }
-    }, 100);
   }
 
   private startGame(game: any): void {
