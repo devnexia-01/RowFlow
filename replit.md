@@ -1,31 +1,37 @@
 # 🎯 4 in a Row - Real-Time Multiplayer Game
 
 ## Overview
-A real-time multiplayer implementation of the classic "4 in a Row" (Connect Four) game built with modern technologies.
+A real-time multiplayer implementation of the classic "4 in a Row" (Connect Four) game built with modern web technologies and best practices.
 
 **Tech Stack:**
-- **Backend**: Go 1.24 with WebSocket support
+- **Backend**: Node.js with TypeScript, Express, and WebSocket support
 - **Frontend**: React with Vite
-- **Database**: PostgreSQL
-- **Message Queue**: Kafka for analytics events
-- **CI/CD**: GitHub Actions
+- **Database**: PostgreSQL (optional, works without it)
+- **Message Queue**: Kafka for analytics events (optional)
+- **Package Manager**: npm
+- **Runtime**: Node.js 20
 
 ## Project Architecture
 
-### Backend (Go)
-- `cmd/server/`: Main server entry point
-- `internal/game/`: Core game logic and board state
-- `internal/bot/`: Competitive AI bot implementation
-- `internal/matchmaking/`: Player matching system
-- `internal/websocket/`: WebSocket connection handling
-- `internal/database/`: PostgreSQL data access layer
-- `internal/kafka/`: Event producer for analytics
+### Backend (Node.js/TypeScript)
+Located in `backend-nodejs/`:
+- `src/index.ts`: Main server entry point with Express setup
+- `src/services/game.ts`: Core game logic and board state
+- `src/services/bot.ts`: Competitive AI bot implementation
+- `src/services/matchmaking.ts`: Player matching system
+- `src/services/websocket.ts`: WebSocket connection handling
+- `src/services/database.ts`: PostgreSQL data access layer
+- `src/services/kafka.ts`: Event producer for analytics
+- `src/routes/api.ts`: HTTP API routes
+- `src/types/index.ts`: TypeScript type definitions
 
 ### Frontend (React)
+Located in `frontend/`:
 - Vite-powered React application
 - WebSocket client for real-time gameplay
-- Interactive game board UI
-- Leaderboard display
+- Interactive game board UI component
+- Live leaderboard display
+- Custom WebSocket hook
 
 ## Features Implemented
 
@@ -58,26 +64,45 @@ A real-time multiplayer implementation of the classic "4 in a Row" (Connect Four
 - ✅ Replit deployment configuration
 
 ## Recent Changes
-- [2025-10-18] Initial project setup with Go and React
-- [2025-10-18] Implemented core game logic and bot AI
-- [2025-10-18] Set up WebSocket server and matchmaking
-- [2025-10-18] Created React frontend with game board
-- [2025-10-18] Integrated PostgreSQL and Kafka
-- [2025-10-18] Configured CI/CD pipelines
+- [2025-10-19] **Major refactor**: Converted Go backend to Node.js/TypeScript
+- [2025-10-19] Implemented proper environment variable management with .env support
+- [2025-10-19] Added TypeScript for type safety and better developer experience
+- [2025-10-19] Structured backend with clean service-based architecture
+- [2025-10-19] Backend now serves built frontend (single-server deployment)
+- [2025-10-19] Database and Kafka made optional for flexible deployment
 
 ## Development
 
 ### Running Locally
-Backend runs on port 8080
-Frontend runs on port 5000 (proxied)
+The application runs as a single server on port 5000:
+- Backend serves both API and WebSocket on port 5000
+- Frontend is built and served statically by the backend
+- WebSocket endpoint: `ws://localhost:5000/ws`
+- API endpoints: `http://localhost:5000/api/*`
 
-The application uses environment variables for configuration:
-- `DATABASE_URL`: PostgreSQL connection
+### Environment Variables
+The application uses environment variables for configuration (all optional):
+- `PORT`: Server port (default: 5000)
+- `NODE_ENV`: Environment (development/production)
+- `DATABASE_URL`: PostgreSQL connection string (optional)
+- `KAFKA_ENABLED`: Enable Kafka events (default: false)
 - `KAFKA_BROKER`: Kafka broker address
-- `SESSION_SECRET`: Session management
+- `MATCHMAKING_TIMEOUT`: Time before pairing with bot (default: 10000ms)
+- `RECONNECTION_TIMEOUT`: Reconnection window (default: 30000ms)
+- `SESSION_SECRET`: Session management secret
+
+### Best Practices Implemented
+- ✅ TypeScript for type safety
+- ✅ Environment variable management with dotenv
+- ✅ Graceful shutdown handling
+- ✅ Service-based architecture
+- ✅ Optional dependencies (DB, Kafka)
+- ✅ Comprehensive error handling
+- ✅ Clean separation of concerns
 
 ## User Preferences
-- Language: Go for backend, React for frontend
-- Focus on clean code architecture
+- Language: **Node.js/TypeScript** for backend, React for frontend
+- Focus on clean code architecture and best practices
 - Strategic AI for competitive gameplay
 - Real-time performance priority
+- Proper environment variable management
