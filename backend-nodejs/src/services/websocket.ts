@@ -92,6 +92,9 @@ export class WebSocketHandler {
   }
 
   private startGame(game: any): void {
+    console.log(`Starting game ${game.id}: ${game.player1} vs ${game.player2}`);
+    console.log(`Active clients: ${Array.from(this.clients.values()).map(c => c.username).join(', ')}`);
+    
     const player1Client = Array.from(this.clients.values()).find(
       c => c.username === game.player1
     );
@@ -99,7 +102,10 @@ export class WebSocketHandler {
       c => c.username === game.player2
     );
 
+    console.log(`Player1 client found: ${!!player1Client}, Player2 client found: ${!!player2Client}`);
+
     if (player1Client) {
+      console.log(`Sending game_start to ${game.player1}`);
       this.send(player1Client.ws, {
         type: 'game_start',
         data: {
@@ -109,9 +115,12 @@ export class WebSocketHandler {
           yourTurn: true,
         },
       });
+    } else {
+      console.error(`Player1 client not found: ${game.player1}`);
     }
 
     if (player2Client) {
+      console.log(`Sending game_start to ${game.player2}`);
       this.send(player2Client.ws, {
         type: 'game_start',
         data: {
@@ -121,6 +130,8 @@ export class WebSocketHandler {
           yourTurn: false,
         },
       });
+    } else {
+      console.error(`Player2 client not found: ${game.player2}`);
     }
 
     // Send Kafka event
