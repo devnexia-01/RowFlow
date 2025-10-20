@@ -13,7 +13,6 @@ const createApiRouter = (): Router => {
       const leaderboard = await UserController.getLeaderboard();
       res.json(leaderboard);
     } catch (error) {
-      console.error('Failed to get leaderboard:', error);
       res.status(500).json({ error: 'Failed to fetch leaderboard' });
     }
   });

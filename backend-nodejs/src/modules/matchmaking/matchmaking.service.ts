@@ -3,6 +3,7 @@ import { ClientConnection, MatchmakerState } from './matchmaking.types.js';
 import { GameState } from '../game/game.types.js';
 import * as GameService from '../game/game.service.js';
 import { RECONNECTION_TIMEOUT, MATCHMAKING_TIMEOUT } from '../../config/env.js';
+import { logInfo } from '../../utils/logger.js';
 
 const createMatchmaker = (onGameCreated?: (game: GameState) => void): MatchmakerState => {
   return {
@@ -17,7 +18,7 @@ const createMatchmaker = (onGameCreated?: (game: GameState) => void): Matchmaker
 
 const addToQueue = (state: MatchmakerState, client: ClientConnection): void => {
   state.waitingPlayers.push(client);
-  console.log(`Player ${client.username} added to matchmaking queue`);
+  logInfo(`Player ${client.username} added to matchmaking queue`);
 
   tryMatch(state, client);
 };
@@ -35,7 +36,7 @@ const tryMatch = (state: MatchmakerState, client: ClientConnection): void => {
   } else {
     setTimeout(() => {
       if (!client.gameId && state.waitingPlayers.includes(client)) {
-        console.log(`Matching ${client.username} with bot after timeout`);
+        logInfo(`Matching ${client.username} with bot after timeout`);
         const game = createGameWithBot(state, client);
         if (state.onGameCreated) {
           state.onGameCreated(game);
@@ -74,7 +75,7 @@ const createGame = (state: MatchmakerState, player1: ClientConnection, player2: 
     p => p.id !== player1.id && p.id !== player2.id
   );
 
-  console.log(`Game ${gameId} created: ${player1.username} vs ${player2.username}`);
+  logInfo(`Game ${gameId} created: ${player1.username} vs ${player2.username}`);
   return game;
 };
 
@@ -102,7 +103,7 @@ const createGameWithBot = (state: MatchmakerState, player: ClientConnection): Ga
 
   state.waitingPlayers = state.waitingPlayers.filter(p => p.id !== player.id);
 
-  console.log(`Game ${gameId} created: ${player.username} vs Bot`);
+  logInfo(`Game ${gameId} created: ${player.username} vs Bot`);
   return game;
 };
 
@@ -125,7 +126,7 @@ const removeGame = (state: MatchmakerState, gameId: string): void => {
     state.playerToGame.delete(game.player1);
     state.playerToGame.delete(game.player2);
     state.games.delete(gameId);
-    console.log(`Game ${gameId} removed`);
+    logInfo(`Game ${gameId} removed`);
   }
 };
 

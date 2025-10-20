@@ -1,5 +1,6 @@
 import { Kafka, Producer } from 'kafkajs';
 import { KAFKA_ENABLED, KAFKA_BROKER } from './env.js';
+import { logInfo, logError, logWarn } from '../utils/logger.js';
 
 let producer: Producer | null = null;
 let enabled: boolean = false;
@@ -14,13 +15,13 @@ const createKafkaProducer = () => {
 
       producer = kafka.producer();
       enabled = true;
-      console.log('✅ Kafka producer initialized');
+      logInfo('✅ Kafka producer initialized');
     } catch (error) {
-      console.error('❌ Kafka initialization failed:', error);
+      logError('❌ Kafka initialization failed:', error);
       enabled = false;
     }
   } else {
-    console.warn('⚠️  Kafka disabled or not configured');
+    logWarn('⚠️  Kafka disabled or not configured');
     enabled = false;
   }
 };
@@ -29,9 +30,9 @@ const connect = async (): Promise<void> => {
   if (enabled && producer) {
     try {
       await producer.connect();
-      console.log('✅ Kafka producer connected');
+      logInfo('✅ Kafka producer connected');
     } catch (error) {
-      console.error('❌ Kafka connection failed:', error);
+      logError('❌ Kafka connection failed:', error);
       enabled = false;
     }
   }
@@ -55,7 +56,7 @@ const sendEvent = async (eventType: string, data: any): Promise<void> => {
       ],
     });
   } catch (error) {
-    console.error('Failed to send Kafka event:', error);
+    logError('Failed to send Kafka event:', error);
   }
 };
 

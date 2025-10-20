@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { LeaderboardEntry } from '../types/index.js';
 import { DATABASE_URL, NODE_ENV } from './env.js';
+import { logInfo, logError, logWarn } from '../utils/logger.js';
 
 const { Pool } = pg;
 
@@ -15,13 +16,13 @@ const createDatabase = () => {
         ssl: NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
       });
       enabled = true;
-      console.log('✅ Database connection established');
+      logInfo('✅ Database connection established');
     } catch (error) {
-      console.error('❌ Database connection failed:', error);
+      logError('❌ Database connection failed:', error);
       enabled = false;
     }
   } else {
-    console.warn('⚠️  No DATABASE_URL found, running without database');
+    logWarn('⚠️  No DATABASE_URL found, running without database');
     enabled = false;
   }
 };
@@ -51,9 +52,9 @@ const initialize = async (): Promise<void> => {
       )
     `);
 
-    console.log('✅ Database tables initialized');
+    logInfo('✅ Database tables initialized');
   } catch (error) {
-    console.error('❌ Failed to initialize database tables:', error);
+    logError('❌ Failed to initialize database tables:', error);
   }
 };
 
@@ -66,7 +67,7 @@ const ensurePlayer = async (username: string): Promise<void> => {
       [username]
     );
   } catch (error) {
-    console.error('Failed to ensure player:', error);
+    logError('Failed to ensure player:', error);
   }
 };
 
@@ -102,9 +103,9 @@ const saveGame = async (
       }
     }
 
-    console.log(`✅ Game saved: ${player1} vs ${player2}, winner: ${winner}`);
+    logInfo(`✅ Game saved: ${player1} vs ${player2}, winner: ${winner}`);
   } catch (error) {
-    console.error('Failed to save game:', error);
+    logError('Failed to save game:', error);
   }
 };
 
@@ -124,7 +125,7 @@ const getLeaderboard = async (limit: number = 10): Promise<LeaderboardEntry[]> =
 
     return result.rows;
   } catch (error) {
-    console.error('Failed to get leaderboard:', error);
+    logError('Failed to get leaderboard:', error);
     return [];
   }
 };

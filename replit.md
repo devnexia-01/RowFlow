@@ -14,22 +14,45 @@ A real-time multiplayer implementation of the classic "4 in a Row" (Connect Four
 ## Project Architecture
 
 ### Backend (Node.js/TypeScript)
-Located in `backend-nodejs/`:
-- `src/index.ts`: Main server entry point with Express setup
-- `src/services/game.ts`: Core game logic and board state (functional)
-- `src/services/bot.ts`: Competitive AI bot implementation (functional)
-- `src/services/matchmaking.ts`: Player matching system (functional with state)
-- `src/services/websocket.ts`: WebSocket connection handling (functional with state)
-- `src/services/database.ts`: PostgreSQL data access layer (functional)
-- `src/services/kafka.ts`: Event producer for analytics (functional)
-- `src/routes/api.ts`: HTTP API routes
-- `src/types/index.ts`: TypeScript type definitions
+Located in `backend-nodejs/src/`:
+```
+src/
+├── config/
+│   ├── env.ts              # Environment variable management
+│   ├── database.ts         # PostgreSQL connection and queries
+│   └── kafka.ts            # Kafka producer for analytics events
+├── controllers/
+│   ├── gameController.ts   # WebSocket game controller
+│   └── userController.ts   # User/leaderboard controller
+├── middleware/
+│   └── errorHandler.ts     # Express error handling middleware
+├── modules/
+│   ├── game/
+│   │   ├── game.service.ts # Core game logic and bot AI
+│   │   └── game.types.ts   # Game type definitions
+│   └── matchmaking/
+│       ├── matchmaking.service.ts  # Player matching system
+│       └── matchmaking.types.ts    # Matchmaking types
+├── routes/
+│   └── api.ts              # HTTP API routes
+├── types/
+│   └── index.ts            # Shared type definitions
+├── utils/
+│   └── logger.ts           # Logging utilities
+└── index.ts                # Main server entry point
+```
 
-**Architecture Pattern**: All services use **function-based approach** instead of classes:
-- Pure functions for stateless logic (game, bot)
-- Factory functions with closures for stateful modules (database, kafka, websocket, matchmaking)
+**Architecture Pattern**: Layered architecture with **function-based approach**:
+- **Config Layer**: Environment variables, database, and external service connections
+- **Controllers**: Handle HTTP requests and WebSocket connections
+- **Modules**: Domain logic organized by feature (game, matchmaking)
+- **Middleware**: Express middleware for cross-cutting concerns
+- **Utils**: Shared utility functions
+- **Export Pattern**: Functions declared first, exported at end of file
+- Pure functions for stateless logic (game mechanics, bot AI)
+- Factory functions with closures for stateful services
 - Immutable state patterns where possible
-- Separation of concerns with small, focused functions
+- Clean separation of concerns with focused, single-responsibility modules
 
 ### Frontend (React)
 Located in `frontend/`:
@@ -71,13 +94,17 @@ Located in `frontend/`:
 - ✅ Build and production optimizations
 
 ## Recent Changes
-- [2025-10-20] **Refactored all backend services from classes to functional approach**
-- [2025-10-20] Converted database, kafka, websocket, matchmaking to use functions and closures
-- [2025-10-20] Converted game and bot to use pure functions
-- [2025-10-20] Updated all imports and dependencies to use functional modules
-- [2025-10-20] Verified React components already use functional components with hooks
+- [2025-10-20] **Restructured backend to layered architecture with proper separation of concerns**
+- [2025-10-20] Created config/ layer for environment, database, and Kafka configuration
+- [2025-10-20] Created controllers/ for HTTP and WebSocket request handling
+- [2025-10-20] Organized domain logic into modules/ (game and matchmaking features)
+- [2025-10-20] Added middleware/ for error handling and utils/ for shared utilities
+- [2025-10-20] Updated export pattern: functions declared first, then exported at end
+- [2025-10-20] All code follows functional programming approach with no classes
+- [2025-10-20] Removed old services/ directory, migrated to new structure
 - [2025-10-20] Set up Replit environment with Node.js 20
 - [2025-10-20] Configured deployment for autoscale with build steps
+- [2025-10-20] Server running successfully on port 5000 with WebSocket support
 - [2025-10-19] **Major refactor**: Converted Go backend to Node.js/TypeScript
 - [2025-10-19] Implemented proper environment variable management with .env support
 - [2025-10-19] Added TypeScript for type safety and better developer experience
