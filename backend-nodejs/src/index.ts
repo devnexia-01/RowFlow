@@ -1,91 +1,82 @@
-import 'dotenv/config';
 import express from 'express';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import * as Database from './services/database.js';
-import * as Kafka from './services/kafka.js';
-import * as WebSocketHandler from './services/websocket.js';
+import * as DatabaseConfig from './config/database.js';
+import * as KafkaConfig from './config/kafka.js';
+import { PORT, NODE_ENV } from './config/env.js';
+import * as GameController from './controllers/gameController.js';
 import { createApiRouter } from './routes/api.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { logInfo, logError } from './utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = parseInt(process.env.PORT || '5000');
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const main = async () => {
+  logInfo('🚀 Starting 4 in a Row server...');
+  logInfo(`Environment: ${NODE_ENV}`);
 
-async function main() {
-  console.log('🚀 Starting 4 in a Row server...');
-  console.log(`Environment: ${NODE_ENV}`);
+  DatabaseConfig.createDatabase();
+  await DatabaseConfig.initialize();
 
-  // Initialize services
-  Database.createDatabase();
-  await Database.initialize();
+  KafkaConfig.createKafkaProducer();
+  await KafkaConfig.connect();
 
-  Kafka.createKafkaProducer();
-  await Kafka.connect();
-
-  // Create Express app
   const app = express();
   const server = createServer(app);
 
-  // Create WebSocket server
   const wss = new WebSocketServer({ 
     server,
     path: '/ws'
   });
 
-  // Initialize WebSocket handler
-  const wsHandler = WebSocketHandler.createWebSocketHandler(wss);
+  const wsHandler = GameController.createWebSocketHandler(wss);
 
-  // Middleware
   app.use(cors());
   app.use(express.json());
 
-  // API routes
-  app.use('/api', createApiRouter(wsHandler));
+  app.use('/api', createApiRouter());
 
-  // Serve static frontend files
   const frontendPath = path.join(__dirname, '../../frontend/dist');
   app.use(express.static(frontendPath));
 
-  // Serve index.html for all other routes (SPA support)
   app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
 
-  // Start server
+  app.use(errorHandler);
+
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Server running on port ${PORT}`);
-    console.log(`   HTTP: http://0.0.0.0:${PORT}`);
-    console.log(`   WebSocket: ws://0.0.0.0:${PORT}/ws`);
+    logInfo(`✅ Server running on port ${PORT}`);
+    logInfo(`   HTTP: http://0.0.0.0:${PORT}`);
+    logInfo(`   WebSocket: ws://0.0.0.0:${PORT}/ws`);
   });
 
-  // Graceful shutdown
   process.on('SIGTERM', async () => {
-    console.log('SIGTERM received, shutting down gracefully...');
-    await Kafka.disconnect();
-    await Database.close();
+    logInfo('SIGTERM received, shutting down gracefully...');
+    await KafkaConfig.disconnect();
+    await DatabaseConfig.close();
     server.close(() => {
-      console.log('Server closed');
+      logInfo('Server closed');
       process.exit(0);
     });
   });
 
   process.on('SIGINT', async () => {
-    console.log('SIGINT received, shutting down gracefully...');
-    await Kafka.disconnect();
-    await Database.close();
+    logInfo('SIGINT received, shutting down gracefully...');
+    await KafkaConfig.disconnect();
+    await DatabaseConfig.close();
     server.close(() => {
-      console.log('Server closed');
+      logInfo('Server closed');
       process.exit(0);
     });
   });
-}
+};
 
 main().catch((error) => {
-  console.error('Failed to start server:', error);
+  logError('Failed to start server:', error);
   process.exit(1);
 });

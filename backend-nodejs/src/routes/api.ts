@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { WebSocketHandlerState, getLeaderboard } from '../services/websocket.js';
+import * as UserController from '../controllers/userController.js';
 
-export function createApiRouter(wsHandler: WebSocketHandlerState): Router {
+const createApiRouter = (): Router => {
   const router = Router();
 
   router.get('/health', (req: Request, res: Response) => {
@@ -10,7 +10,7 @@ export function createApiRouter(wsHandler: WebSocketHandlerState): Router {
 
   router.get('/leaderboard', async (req: Request, res: Response) => {
     try {
-      const leaderboard = await getLeaderboard(wsHandler);
+      const leaderboard = await UserController.getLeaderboard();
       res.json(leaderboard);
     } catch (error) {
       console.error('Failed to get leaderboard:', error);
@@ -19,4 +19,8 @@ export function createApiRouter(wsHandler: WebSocketHandlerState): Router {
   });
 
   return router;
-}
+};
+
+export {
+  createApiRouter,
+};
