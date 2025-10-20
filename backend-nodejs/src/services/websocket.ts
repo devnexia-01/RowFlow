@@ -82,10 +82,16 @@ function handleJoin(state: WebSocketHandlerState, clientId: string, ws: WebSocke
   state.clients.set(clientId, client);
   Matchmaking.addToQueue(state.matchmaker, client);
 
-  send(ws, {
-    type: 'waiting',
-    data: { message: 'Waiting for opponent...' },
-  });
+  // Only send waiting message if not immediately matched
+  // Check if the client has a gameId after matchmaking
+  setTimeout(() => {
+    if (!client.gameId) {
+      send(ws, {
+        type: 'waiting',
+        data: { message: 'Waiting for opponent...' },
+      });
+    }
+  }, 100);
 }
 
 function startGame(state: WebSocketHandlerState, game: any): void {
