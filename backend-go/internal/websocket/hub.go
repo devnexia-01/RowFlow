@@ -295,9 +295,9 @@ func (h *Hub) broadcastMove(gameState *game.GameState, move *game.Move) {
 }
 
 func (h *Hub) sendError(client *Client, message string) {
-        response := Message{
-                Type: "error",
-                Data: map[string]string{"message": message},
+        response := map[string]string{
+                "type":  "error",
+                "error": message,
         }
         responseBytes, _ := json.Marshal(response)
         client.Send <- responseBytes
