@@ -30,7 +30,7 @@ function App() {
       const data = await response.json()
       setLeaderboard(data || [])
     } catch (err) {
-      console.error('Failed to fetch leaderboard:', err)
+      setLeaderboard([])
     }
   }
 

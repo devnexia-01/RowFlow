@@ -13,30 +13,21 @@ const useWebSocket = () => {
     ws.current = new WebSocket(wsUrl)
 
     ws.current.onopen = () => {
-      console.log('WebSocket connected')
       setConnectionStatus('connected')
     }
 
     ws.current.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data)
-        setLastMessage(message)
-      } catch (err) {
-        console.error('Failed to parse message:', err)
-      }
+      const message = JSON.parse(event.data)
+      setLastMessage(message)
     }
 
-    ws.current.onerror = (error) => {
-      console.error('WebSocket error:', error)
+    ws.current.onerror = () => {
       setConnectionStatus('error')
     }
 
     ws.current.onclose = () => {
-      console.log('WebSocket disconnected')
       setConnectionStatus('disconnected')
-      
       reconnectTimeout.current = setTimeout(() => {
-        console.log('Attempting to reconnect...')
         connect()
       }, 3000)
     }
@@ -58,8 +49,6 @@ const useWebSocket = () => {
   const sendMessage = useCallback((message) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(message))
-    } else {
-      console.error('WebSocket is not connected')
     }
   }, [])
 
