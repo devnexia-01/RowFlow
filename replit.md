@@ -4,16 +4,24 @@
 A real-time multiplayer implementation of the classic "4 in a Row" (Connect Four) game built with modern web technologies and best practices.
 
 **Tech Stack:**
-- **Backend**: Node.js with TypeScript, Express, and WebSocket support
+- **Backend**: **Dual Implementation** - Node.js/TypeScript AND Go (interchangeable)
+  - Node.js with TypeScript, Express, and WebSocket support (default, port 5000)
+  - Go 1.24 with gorilla/mux and gorilla/websocket (alternative, port 8080)
 - **Frontend**: React with Vite
 - **Database**: PostgreSQL (optional, works without it)
 - **Message Queue**: Kafka for analytics events (optional)
-- **Package Manager**: npm
-- **Runtime**: Node.js 20
+- **Package Manager**: npm (Node.js), go modules (Go)
+- **Runtime**: Node.js 20 and Go 1.24
 
 ## Project Architecture
 
-### Backend (Node.js/TypeScript)
+This project now includes **TWO complete backend implementations** that are interchangeable:
+1. **Node.js/TypeScript Backend** (default, currently running)
+2. **Go Backend** (alternative implementation)
+
+Both backends share identical contracts (WebSocket messages, REST API, database schema). See `BACKEND_SWITCHING.md` for details on switching between them.
+
+### Backend Option 1: Node.js/TypeScript (Default)
 Located in `backend-nodejs/src/`:
 ```
 src/
@@ -53,6 +61,33 @@ src/
 - Factory functions with closures for stateful services
 - Immutable state patterns where possible
 - Clean separation of concerns with focused, single-responsibility modules
+
+### Backend Option 2: Go (Alternative)
+Located in `backend-go/`:
+```
+backend-go/
+├── cmd/server/          # Main server entry point
+├── internal/
+│   ├── game/           # Core game logic and board
+│   ├── bot/            # AI bot implementation
+│   ├── matchmaking/    # Player matching system
+│   ├── websocket/      # WebSocket handler & hub
+│   ├── database/       # PostgreSQL data layer
+│   └── kafka/          # Event producer
+└── go.mod
+```
+
+**Architecture Pattern**: Idiomatic Go with packages:
+- **cmd/server**: Application entry point and server setup
+- **internal/game**: Core game logic with pure functions
+- **internal/bot**: AI bot with strategic decision-making
+- **internal/matchmaking**: Concurrent matchmaking with sync.RWMutex
+- **internal/websocket**: Hub pattern for WebSocket connections
+- **internal/database**: PostgreSQL repository layer
+- **internal/kafka**: Kafka producer for analytics
+- Native Go concurrency with goroutines and channels
+- Interface-based design for testability
+- Thread-safe with proper synchronization
 
 ### Frontend (React)
 Located in `frontend/`:
@@ -94,6 +129,16 @@ Located in `frontend/`:
 - ✅ Build and production optimizations
 
 ## Recent Changes
+- [2025-10-22] **Added complete Go backend implementation** as alternative to Node.js
+- [2025-10-22] Implemented full Go backend with same functionality as Node.js backend
+- [2025-10-22] Created backend-go/ directory with Go 1.24, gorilla/mux, gorilla/websocket
+- [2025-10-22] Implemented game logic, bot AI, matchmaking, WebSocket hub in Go
+- [2025-10-22] Added PostgreSQL and Kafka support to Go backend
+- [2025-10-22] Both backends now share identical contracts (WebSocket, REST API, DB schema)
+- [2025-10-22] Created BACKEND_SWITCHING.md documentation for switching between backends
+- [2025-10-22] Updated replit.md to reflect dual-backend architecture
+- [2025-10-22] Installed Go 1.24 and all required dependencies
+- [2025-10-22] Node.js backend remains default and currently running on port 5000
 - [2025-10-20] **Restructured backend to layered architecture with proper separation of concerns**
 - [2025-10-20] Created config/ layer for environment, database, and Kafka configuration
 - [2025-10-20] Created controllers/ for HTTP and WebSocket request handling
