@@ -90,8 +90,16 @@ func main() {
                 json.NewEncoder(w).Encode(stats)
         }).Methods("GET")
 
-        frontendPath := filepath.Join("..", "..", "frontend", "dist")
-        router.PathPrefix("/").Handler(http.FileServer(http.Dir(frontendPath)))
+        frontendPath := filepath.Join("..", "frontend", "dist")
+        fs := http.FileServer(http.Dir(frontendPath))
+        router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                path := filepath.Join(frontendPath, r.URL.Path)
+                if _, err := os.Stat(path); os.IsNotExist(err) {
+                        http.ServeFile(w, r, filepath.Join(frontendPath, "index.html"))
+                        return
+                }
+                fs.ServeHTTP(w, r)
+        }))
 
         log.Printf("✅ Server running on http://0.0.0.0:%s", port)
         log.Printf("   WebSocket: ws://0.0.0.0:%s/ws", port)
