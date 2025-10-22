@@ -9,6 +9,7 @@
 go.work
 backend/server
 backend/tmp/
+backend-go/server
 
 # Node.js
 node_modules/

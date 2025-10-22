@@ -106,17 +106,22 @@ func (h *Hub) Run() {
 }
 
 func (h *Hub) handleGameCreated(gameState *game.GameState) {
-        response := Message{
-                Type: "gameStart",
-                Data: gameState,
-        }
-        responseBytes, _ := json.Marshal(response)
-
         h.mu.RLock()
         defer h.mu.RUnlock()
 
         for client := range h.clients {
                 if client.Username == gameState.Player1 || client.Username == gameState.Player2 {
+                        yourTurn := client.Username == gameState.Player1
+                        response := Message{
+                                Type: "game_start",
+                                Data: map[string]interface{}{
+                                        "gameId":  gameState.ID,
+                                        "player1": gameState.Player1,
+                                        "player2": gameState.Player2,
+                                        "yourTurn": yourTurn,
+                                },
+                        }
+                        responseBytes, _ := json.Marshal(response)
                         select {
                         case client.Send <- responseBytes:
                         default:
@@ -243,8 +248,10 @@ func (h *Hub) handleGameEnd(gameState *game.GameState, winner game.Player, isDra
         h.matchmaker.UpdateGame(gameState.ID, gameState)
 
         response := Message{
-                Type: "gameEnd",
-                Data: gameState,
+                Type: "game_over",
+                Data: map[string]interface{}{
+                        "winner": gameState.Winner,
+                },
         }
         responseBytes, _ := json.Marshal(response)
 
@@ -268,9 +275,9 @@ func (h *Hub) broadcastMove(gameState *game.GameState, move *game.Move) {
         response := Message{
                 Type: "move",
                 Data: map[string]interface{}{
-                        "board":       gameState.Board,
-                        "move":        move,
-                        "currentTurn": gameState.CurrentTurn,
+                        "row":    move.Row,
+                        "column": move.Column,
+                        "player": move.Player,
                 },
         }
         responseBytes, _ := json.Marshal(response)

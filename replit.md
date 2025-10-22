@@ -5,19 +5,19 @@ A real-time multiplayer implementation of the classic "4 in a Row" (Connect Four
 
 **Tech Stack:**
 - **Backend**: **Dual Implementation** - Node.js/TypeScript AND Go (interchangeable)
-  - Node.js with TypeScript, Express, and WebSocket support (default, port 5000)
-  - Go 1.24 with gorilla/mux and gorilla/websocket (alternative, port 8080)
+  - Go 1.24 with gorilla/mux and gorilla/websocket (currently running, port 5000)
+  - Node.js with TypeScript, Express, and WebSocket support (alternative, port 5000)
 - **Frontend**: React with Vite
 - **Database**: PostgreSQL (optional, works without it)
 - **Message Queue**: Kafka for analytics events (optional)
 - **Package Manager**: npm (Node.js), go modules (Go)
-- **Runtime**: Node.js 20 and Go 1.24
+- **Runtime**: Go 1.24 and Node.js 20
 
 ## Project Architecture
 
 This project now includes **TWO complete backend implementations** that are interchangeable:
-1. **Node.js/TypeScript Backend** (default, currently running)
-2. **Go Backend** (alternative implementation)
+1. **Go Backend** (currently running on Replit)
+2. **Node.js/TypeScript Backend** (alternative implementation)
 
 Both backends share identical contracts (WebSocket messages, REST API, database schema). See `BACKEND_SWITCHING.md` for details on switching between them.
 
@@ -134,6 +134,12 @@ Located in `frontend/`:
 - ✅ Ingress with TLS support
 
 ## Recent Changes
+- [2025-10-22] **Configured project to run with Go backend** on Replit
+- [2025-10-22] Installed Go 1.24 and Node.js 20 modules
+- [2025-10-22] Built React frontend and configured Go backend to serve it
+- [2025-10-22] Set up workflow to run Go backend on port 5000
+- [2025-10-22] Configured deployment with VM target (for WebSocket support)
+- [2025-10-22] Updated .gitignore for Go binaries
 - [2025-10-22] **Added Docker and Kubernetes support** for container deployment
 - [2025-10-22] Created Dockerfiles for all services with multi-stage builds
 - [2025-10-22] Implemented docker-compose.yml for local development stack

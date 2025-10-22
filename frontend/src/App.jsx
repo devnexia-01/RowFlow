@@ -104,7 +104,7 @@ function App() {
     if (username.trim()) {
       sendMessage({
         type: 'join',
-        data: { username: username.trim() }
+        username: username.trim()
       })
       setHasJoined(true)
     }
@@ -114,7 +114,7 @@ function App() {
     if (gameState && gameState.yourTurn && gameState.status === 'playing') {
       sendMessage({
         type: 'move',
-        data: { column }
+        column: column
       })
     }
   }
