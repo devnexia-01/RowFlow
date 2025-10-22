@@ -64,15 +64,19 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_started
+      - postgres
+      - kafka
     networks:
       - fourinrow-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # Go Backend (alternative - comment out if using Node.js)
+  # Go Backend (alternative - comment out backend-nodejs and uncomment this)
   # backend-go:
   #   build:
   #     context: ./backend-go
@@ -86,13 +90,17 @@ services:
   #   ports:
   #     - "8080:8080"
   #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_started
+  #     - postgres
+  #     - kafka
   #   networks:
   #     - fourinrow-network
   #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 15s
 
   # Frontend with nginx
   frontend:
