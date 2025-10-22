@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-nodejs
+  namespace: fourinrow
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend-nodejs
+  template:
+    metadata:
+      labels:
+        app: backend-nodejs
+    spec:
+      containers:
+      - name: backend-nodejs
+        image: fourinrow/backend-nodejs:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: fourinrow-config
+              key: PORT
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: fourinrow-config
+              key: NODE_ENV
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: fourinrow-config
+              key: DATABASE_URL
+        - name: KAFKA_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: fourinrow-config
+              key: KAFKA_ENABLED
+        - name: KAFKA_BROKER
+          valueFrom:
+            configMapKeyRef:
+              name: fourinrow-config
+              key: KAFKA_BROKER
+        - name: MATCHMAKING_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: fourinrow-config
+              key: MATCHMAKING_TIMEOUT
+        - name: RECONNECTION_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: fourinrow-config
+              key: RECONNECTION_TIMEOUT
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-nodejs-service
+  namespace: fourinrow
+spec:
+  selector:
+    app: backend-nodejs
+  ports:
+  - port: 5000
+    targetPort: 5000
+    name: http
+  type: ClusterIP
