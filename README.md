@@ -1,213 +1,97 @@
-# 🎮 4 in a Row - Real-Time Multiplayer Game
+# 4 in a Row
 
-A modern, real-time implementation of the classic Connect Four game with intelligent bot opponents, multiplayer support, and comprehensive analytics.
+Connect Four game with multiplayer and bot support. Built with Go backend and React frontend.
 
-## 🌟 Features
+## Features
 
-### Core Gameplay
-- **7×6 Game Board** - Classic Connect Four gameplay
-- **Real-Time Multiplayer** - Play against other players via WebSocket
-- **Smart Bot Opponent** - AI bot with strategic decision-making
-- **Win Detection** - Horizontal, vertical, and diagonal win conditions
-- **Reconnection Support** - 30-second window to rejoin games
+- Play against other players online
+- AI bot opponent
+- Real-time gameplay using WebSockets
+- Leaderboard with player stats
+- PostgreSQL database for game history
 
-### Matchmaking System
-- Automatic player matching
-- 10-second timeout before bot pairing
-- Queue management for waiting players
+## Tech Stack
 
-### Competitive Bot AI
-- Strategic move selection
-- Blocks opponent winning moves
-- Creates winning opportunities
-- Evaluates board positions using minimax-style logic
+**Backend:**
+- Go 1.24
+- gorilla/websocket for WebSocket support
+- gorilla/mux for routing
+- PostgreSQL database
+- Kafka for event streaming (optional)
 
-### Analytics & Persistence
-- **PostgreSQL Database** - Stores game history and player stats
-- **Kafka Integration** - Real-time game events streaming
-- **Leaderboard** - Live rankings based on wins
-
-### DevOps
-- **CI/CD Pipeline** - Automated testing and deployment via GitHub Actions
-- **Health Monitoring** - API endpoints for service health checks
-
-## 🏗️ Architecture
-
-### Backend (Go)
-```
-backend/
-├── cmd/server/           # Main server entry point
-├── internal/
-│   ├── game/            # Core game logic and board
-│   ├── bot/             # AI bot implementation
-│   ├── matchmaking/     # Player matching system
-│   ├── websocket/       # WebSocket handler & hub
-│   ├── database/        # PostgreSQL data layer
-│   └── kafka/           # Event producer
-└── go.mod
-```
-
-**Key Technologies:**
-- `gorilla/websocket` - Real-time communication
-- `gorilla/mux` - HTTP routing
-- `lib/pq` - PostgreSQL driver
-- `segmentio/kafka-go` - Kafka producer
-
-### Frontend (React)
-```
-frontend/
-├── src/
-│   ├── components/      # React components
-│   │   ├── GameBoard.jsx
-│   │   └── Leaderboard.jsx
-│   ├── hooks/          # Custom React hooks
-│   │   └── useWebSocket.js
-│   ├── App.jsx         # Main application
-│   └── main.jsx        # Entry point
-└── package.json
-```
-
-**Key Technologies:**
+**Frontend:**
 - React 18
-- Vite (build tool)
-- Native WebSocket API
+- Vite
+- WebSocket API
 
-## 🚀 Getting Started
+## Running the Project
 
 ### Prerequisites
 - Go 1.24+
 - Node.js 20+
-- PostgreSQL database
+- PostgreSQL (optional - works without it)
 
-### Environment Variables
+### Setup
+
+1. Install dependencies:
 ```bash
-DATABASE_URL=postgresql://user:pass@host/db
-PORT=5000
-KAFKA_BROKER=localhost:9092
-```
-
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd fourinrow
-```
-
-2. **Install Backend Dependencies**
-```bash
-cd backend
+cd backend-go
 go mod download
-```
 
-3. **Install Frontend Dependencies**
-```bash
-cd frontend
+cd ../frontend
 npm install
 ```
 
-4. **Build the Application**
-```bash
-# Build backend
-cd backend
-go build -o server ./cmd/server
-
-# Build frontend
-cd frontend
-npm run build
-```
-
-5. **Run the Server**
-```bash
-cd backend
-PORT=5000 ./server
-```
-
-The application will be available at `http://localhost:5000`
-
-## 🎮 How to Play
-
-1. **Join a Game**
-   - Enter your username
-   - Click "Join Game"
-   - Wait for an opponent (or bot after 10 seconds)
-
-2. **Gameplay**
-   - Click on any column to drop your disc
-   - Discs fall to the lowest available position
-   - First to connect 4 wins!
-
-3. **Winning**
-   - Connect 4 discs horizontally, vertically, or diagonally
-   - If the board fills with no winner, it's a draw
-
-4. **Reconnection**
-   - If disconnected, you have 30 seconds to rejoin
-   - Use the same username or game ID
-
-## 📊 API Endpoints
-
-### WebSocket
-- `ws://host:port/ws` - WebSocket connection for real-time gameplay
-
-**Messages:**
-- `join` - Join game with username
-- `move` - Make a move (column number)
-- `reconnect` - Rejoin existing game
-
-### HTTP
-- `GET /api/leaderboard` - Fetch top players
-- `GET /api/health` - Health check endpoint
-
-## 🧪 Testing
-
-### Backend Tests
-```bash
-cd backend
-go test -v ./...
-```
-
-### Frontend Build
+2. Build frontend:
 ```bash
 cd frontend
 npm run build
 ```
 
-## 🔧 CI/CD Pipeline
+3. Run the server:
+```bash
+cd backend-go
+PORT=5000 go run ./cmd/server
+```
 
-The project uses GitHub Actions for continuous integration and deployment:
+The game will be available at http://localhost:5000
 
-### Workflows
-1. **Backend Testing** - Go tests and build verification
-2. **Frontend Testing** - React build verification
-3. **Linting** - Code quality checks
-4. **Deployment** - Automated deployment to Replit
+### Environment Variables
 
-## 🎯 Game Logic
+- `PORT` - Server port (default: 8080)
+- `DATABASE_URL` - PostgreSQL connection string (optional)
+- `KAFKA_ENABLED` - Enable Kafka events (default: false)
+- `KAFKA_BROKER` - Kafka broker address
 
-### Win Conditions
-The game checks for 4 connected discs in:
-- Horizontal lines (→)
-- Vertical lines (↓)
-- Diagonal lines (↗↘)
+## How It Works
 
-### Bot Strategy
-The bot evaluates moves based on:
-1. **Immediate wins** - Takes winning moves
-2. **Blocking** - Prevents opponent wins
-3. **Strategic positioning** - Creates future opportunities
-4. **Center preference** - Favors center columns
+### Matchmaking
+- Players join and wait for an opponent
+- If no player available after 10 seconds, bot joins
+- Games start automatically when 2 players are matched
 
-## 📈 Analytics Events
+### Game Rules
+- 7 columns × 6 rows board
+- Connect 4 discs horizontally, vertically, or diagonally to win
+- Players alternate turns
+- Column must have empty space to place disc
 
-Kafka events are produced for:
-- `game_started` - New game begins
-- `move_made` - Player/bot makes a move
-- `game_ended` - Game completes with winner
+### Bot AI
+The bot uses a simple strategy:
+1. Try to win if possible
+2. Block opponent's winning move
+3. Make strategic moves (create opportunities)
+4. Prefer center columns
+5. Random valid move as fallback
 
-## 🗄️ Database Schema
+## API Endpoints
 
-### Players Table
+- `GET /api/health` - Health check
+- `GET /api/leaderboard` - Top 10 players
+- `WS /ws` - WebSocket connection for gameplay
+
+## Database Schema
+
 ```sql
 CREATE TABLE players (
     username VARCHAR(255) PRIMARY KEY,
@@ -216,13 +100,11 @@ CREATE TABLE players (
     draws INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
 );
-```
 
-### Games Table
-```sql
 CREATE TABLE games (
     id SERIAL PRIMARY KEY,
-    player1 VARCHAR(255) REFERENCES players(username),
+    game_id VARCHAR(255) UNIQUE,
+    player1 VARCHAR(255),
     player2 VARCHAR(255),
     winner VARCHAR(255),
     moves_data TEXT,
@@ -230,45 +112,28 @@ CREATE TABLE games (
 );
 ```
 
-## 🛠️ Development
+## Project Structure
 
-### Running in Development
+```
+backend-go/
+├── cmd/server/          # Main server entry
+├── internal/
+│   ├── game/           # Game logic
+│   ├── bot/            # AI bot
+│   ├── matchmaking/    # Player matching
+│   ├── websocket/      # WebSocket handler
+│   ├── database/       # Database layer
+│   └── kafka/          # Kafka producer
+└── go.mod
 
-**Terminal 1 - Backend:**
-```bash
-cd backend
-go run ./cmd/server
+frontend/
+├── src/
+│   ├── components/     # React components
+│   ├── hooks/         # Custom hooks
+│   └── App.jsx        # Main app
+└── package.json
 ```
 
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm run dev
-```
+## License
 
-### Hot Reload
-- Backend: Use `air` for hot reload
-- Frontend: Vite provides automatic hot module replacement
-
-## 🚢 Deployment
-
-The application is configured for deployment on Replit:
-- Backend serves on port 5000
-- Frontend is built and served by backend
-- Environment variables managed via Replit secrets
-
-## 📝 License
-
-MIT License - feel free to use this project for learning or personal use.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
-
-## 📞 Support
-
-For questions or issues, please open a GitHub issue.
-
----
-
-**Enjoy playing 4 in a Row!** 🎉
+MIT
