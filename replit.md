@@ -127,8 +127,20 @@ Located in `frontend/`:
 - ✅ Replit deployment configuration
 - ✅ Autoscale deployment target
 - ✅ Build and production optimizations
+- ✅ Docker containerization with multi-stage builds
+- ✅ Docker Compose for local development
+- ✅ Kubernetes manifests for production deployment
+- ✅ Horizontal Pod Autoscaling (HPA)
+- ✅ Ingress with TLS support
 
 ## Recent Changes
+- [2025-10-22] **Added Docker and Kubernetes support** for container deployment
+- [2025-10-22] Created Dockerfiles for all services with multi-stage builds
+- [2025-10-22] Implemented docker-compose.yml for local development stack
+- [2025-10-22] Created complete Kubernetes manifests (deployments, services, ingress, HPA)
+- [2025-10-22] Added comprehensive DEPLOYMENT.md documentation
+- [2025-10-22] Configured autoscaling and health checks for K8s
+- [2025-10-22] Fixed concurrency bug in Go WebSocket hub (broadcast map mutation)
 - [2025-10-22] **Added complete Go backend implementation** as alternative to Node.js
 - [2025-10-22] Implemented full Go backend with same functionality as Node.js backend
 - [2025-10-22] Created backend-go/ directory with Go 1.24, gorilla/mux, gorilla/websocket
@@ -160,11 +172,27 @@ Located in `frontend/`:
 ## Development
 
 ### Running Locally
+
+#### Replit Development (Default)
 The application runs as a single server on port 5000:
 - Backend serves both API and WebSocket on port 5000
 - Frontend is built and served statically by the backend
 - WebSocket endpoint: `ws://localhost:5000/ws`
 - API endpoints: `http://localhost:5000/api/*`
+
+#### Docker Development
+Use Docker Compose for a complete local stack:
+```bash
+docker-compose up --build
+```
+This starts PostgreSQL, Kafka, backend, and frontend in containers.
+
+#### Kubernetes Deployment
+Deploy to any Kubernetes cluster:
+```bash
+kubectl apply -f k8s/
+```
+See `DEPLOYMENT.md` for complete deployment instructions.
 
 ### Environment Variables
 The application uses environment variables for configuration (all optional):
