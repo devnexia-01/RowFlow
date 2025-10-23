@@ -7,19 +7,22 @@ import (
         "fourinrow/internal/matchmaking"
         "log"
         "sync"
+        "time"
 
         "github.com/google/uuid"
         "github.com/gorilla/websocket"
 )
 
 type Client struct {
-        ID           string
-        Hub          *Hub
-        Conn         *websocket.Conn
-        Send         chan []byte
-        Username     string
-        GameID       string
-        PlayerNumber game.Player
+        ID             string
+        Hub            *Hub
+        Conn           *websocket.Conn
+        Send           chan []byte
+        Username       string
+        GameID         string
+        PlayerNumber   game.Player
+        Disconnected   bool
+        DisconnectedAt time.Time
 }
 
 type Hub struct {
@@ -72,10 +75,17 @@ func (h *Hub) Run() {
                 case client := <-h.unregister:
                         h.mu.Lock()
                         if _, ok := h.clients[client]; ok {
-                                delete(h.clients, client)
-                                close(client.Send)
-                                h.matchmaker.RemoveFromQueue(client.ID)
-                                log.Printf("Client unregistered: %s", client.ID)
+                                if client.GameID != "" {
+                                        client.Disconnected = true
+                                        client.DisconnectedAt = time.Now()
+                                        log.Printf("Client disconnected: %s (username: %s), will wait 30s for reconnection", client.ID, client.Username)
+                                        go h.handleDisconnectionTimeout(client)
+                                } else {
+                                        delete(h.clients, client)
+                                        close(client.Send)
+                                        h.matchmaker.RemoveFromQueue(client.ID)
+                                        log.Printf("Client unregistered: %s", client.ID)
+                                }
                         }
                         h.mu.Unlock()
 
@@ -301,6 +311,56 @@ func (h *Hub) sendError(client *Client, message string) {
         }
         responseBytes, _ := json.Marshal(response)
         client.Send <- responseBytes
+}
+
+func (h *Hub) handleDisconnectionTimeout(client *Client) {
+        time.Sleep(30 * time.Second)
+
+        h.mu.Lock()
+        defer h.mu.Unlock()
+
+        if client.Disconnected {
+                log.Printf("Player %s did not reconnect within 30 seconds, forfeiting game", client.Username)
+                
+                gameState, exists := h.matchmaker.GetGameByPlayer(client.Username)
+                if exists && !gameState.IsFinished {
+                        var opponent string
+                        if gameState.Player1 == client.Username {
+                                opponent = gameState.Player2
+                        } else {
+                                opponent = gameState.Player1
+                        }
+
+                        gameState.IsFinished = true
+                        gameState.Winner = opponent
+                        h.matchmaker.UpdateGame(gameState.ID, gameState)
+
+                        response := Message{
+                                Type: "game_over",
+                                Data: map[string]interface{}{
+                                        "winner": opponent,
+                                        "reason": "opponent_disconnected",
+                                },
+                        }
+                        responseBytes, _ := json.Marshal(response)
+
+                        for c := range h.clients {
+                                if c.Username == opponent {
+                                        select {
+                                        case c.Send <- responseBytes:
+                                        default:
+                                        }
+                                }
+                        }
+
+                        if h.onGameEvent != nil {
+                                h.onGameEvent("game_ended", gameState)
+                        }
+                }
+
+                delete(h.clients, client)
+                close(client.Send)
+        }
 }
 
 func (c *Client) ReadPump() {
