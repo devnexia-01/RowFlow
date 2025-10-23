@@ -319,6 +319,10 @@ func (h *Hub) handleDisconnectionTimeout(client *Client) {
         h.mu.Lock()
         defer h.mu.Unlock()
 
+        if _, stillExists := h.clients[client]; !stillExists {
+                return
+        }
+
         if client.Disconnected {
                 log.Printf("Player %s did not reconnect within 30 seconds, forfeiting game", client.Username)
                 
@@ -345,7 +349,7 @@ func (h *Hub) handleDisconnectionTimeout(client *Client) {
                         responseBytes, _ := json.Marshal(response)
 
                         for c := range h.clients {
-                                if c.Username == opponent {
+                                if c.Username == opponent && !c.Disconnected {
                                         select {
                                         case c.Send <- responseBytes:
                                         default:
@@ -359,7 +363,9 @@ func (h *Hub) handleDisconnectionTimeout(client *Client) {
                 }
 
                 delete(h.clients, client)
-                close(client.Send)
+                if client.Send != nil {
+                        close(client.Send)
+                }
         }
 }
 

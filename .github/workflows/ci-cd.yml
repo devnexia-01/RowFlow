@@ -20,15 +20,15 @@ jobs:
         go-version: '1.24'
     
     - name: Install dependencies
-      working-directory: ./backend
+      working-directory: ./backend-go
       run: go mod download
     
     - name: Run tests
-      working-directory: ./backend
+      working-directory: ./backend-go
       run: go test -v ./...
     
     - name: Build
-      working-directory: ./backend
+      working-directory: ./backend-go
       run: go build -v ./cmd/server
 
   test-frontend:
@@ -66,19 +66,5 @@ jobs:
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
       with:
-        working-directory: ./backend
+        working-directory: ./backend-go
         version: latest
-
-  deploy:
-    name: Deploy to Replit
-    needs: [test-backend, test-frontend]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Deploy notification
-      run: |
-        echo "Deployment to Replit successful"
-        echo "Application available at your Replit URL"
