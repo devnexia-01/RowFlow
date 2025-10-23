@@ -53,11 +53,15 @@ func main() {
         hub := websocket.NewHub(matchmaker)
 
         hub.SetGameEventCallback(func(eventType string, data interface{}) {
-                kafkaProducer.ProduceEvent(eventType, data)
+                if err := kafkaProducer.ProduceEvent(eventType, data); err != nil {
+                        log.Printf("Failed to produce Kafka event: %v", err)
+                }
                 
                 if eventType == "game_ended" {
                         if gameState, ok := data.(*game.GameState); ok {
-                                db.SaveGame(gameState)
+                                if err := db.SaveGame(gameState); err != nil {
+                                        log.Printf("Failed to save game: %v", err)
+                                }
                         }
                 }
         })
@@ -77,7 +81,9 @@ func main() {
 
         router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
                 w.Header().Set("Content-Type", "application/json")
-                json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+                if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+                        log.Printf("Failed to encode health response: %v", err)
+                }
         }).Methods("GET")
 
         router.HandleFunc("/api/leaderboard", func(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +93,9 @@ func main() {
                         return
                 }
                 w.Header().Set("Content-Type", "application/json")
-                json.NewEncoder(w).Encode(stats)
+                if err := json.NewEncoder(w).Encode(stats); err != nil {
+                        log.Printf("Failed to encode leaderboard response: %v", err)
+                }
         }).Methods("GET")
 
         frontendPath := filepath.Join("..", "frontend", "dist")

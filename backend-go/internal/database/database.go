@@ -93,20 +93,32 @@ func (db *DB) SaveGame(gameState *game.GameState) error {
         }
 
         if gameState.Winner == "Draw" {
-                db.updatePlayerStats(gameState.Player1, 0, 0, 1)
+                if err := db.updatePlayerStats(gameState.Player1, 0, 0, 1); err != nil {
+                        log.Printf("Failed to update player stats for %s: %v", gameState.Player1, err)
+                }
                 if gameState.Player2 != "AI Bot" {
-                        db.updatePlayerStats(gameState.Player2, 0, 0, 1)
+                        if err := db.updatePlayerStats(gameState.Player2, 0, 0, 1); err != nil {
+                                log.Printf("Failed to update player stats for %s: %v", gameState.Player2, err)
+                        }
                 }
         } else if gameState.Winner == gameState.Player1 {
-                db.updatePlayerStats(gameState.Player1, 1, 0, 0)
+                if err := db.updatePlayerStats(gameState.Player1, 1, 0, 0); err != nil {
+                        log.Printf("Failed to update player stats for %s: %v", gameState.Player1, err)
+                }
                 if gameState.Player2 != "AI Bot" {
-                        db.updatePlayerStats(gameState.Player2, 0, 1, 0)
+                        if err := db.updatePlayerStats(gameState.Player2, 0, 1, 0); err != nil {
+                                log.Printf("Failed to update player stats for %s: %v", gameState.Player2, err)
+                        }
                 }
         } else if gameState.Winner == gameState.Player2 {
                 if gameState.Player2 != "AI Bot" {
-                        db.updatePlayerStats(gameState.Player2, 1, 0, 0)
+                        if err := db.updatePlayerStats(gameState.Player2, 1, 0, 0); err != nil {
+                                log.Printf("Failed to update player stats for %s: %v", gameState.Player2, err)
+                        }
                 }
-                db.updatePlayerStats(gameState.Player1, 0, 1, 0)
+                if err := db.updatePlayerStats(gameState.Player1, 0, 1, 0); err != nil {
+                        log.Printf("Failed to update player stats for %s: %v", gameState.Player1, err)
+                }
         }
 
         return nil
